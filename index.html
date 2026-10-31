@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QuickInvoice — Free Invoice Generator for Freelancers</title>
+<meta name="description" content="Create a clean, professional invoice in minutes and save it as PDF. Free, no sign-up, works offline." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --text:#151a2d; --muted:#5f6680; --line:#e2e6f0; --brand:#0f9d76; --brand2:#0b7a5c; --soft:#e8f6f1; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Inter, system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  .top { max-width:1100px; margin:0 auto; padding:24px 16px 8px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+  .brand { font-weight:800; font-size:22px; } .brand b { color:var(--brand); }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; }
+  .btn { border:0; border-radius:10px; padding:10px 14px; font:inherit; font-weight:600; cursor:pointer; background:var(--soft); color:var(--brand2); }
+  .btn.primary { background:var(--brand); color:#fff; }
+  select.btn { appearance:auto; }
+  .paper { max-width:1100px; margin:12px auto 48px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:40px; box-shadow:0 8px 30px rgba(20,30,60,.06); }
+  .head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:24px; margin-bottom:28px; }
+  .logo-box { width:150px; height:70px; border:1px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px; cursor:pointer; overflow:hidden; }
+  .logo-box img { max-width:100%; max-height:100%; }
+  h1 { margin:0; font-size:34px; letter-spacing:-.02em; color:var(--brand); text-align:right; }
+  .meta { display:grid; grid-template-columns:auto 160px; gap:6px 10px; align-items:center; justify-content:end; margin-top:10px; font-size:14px; color:var(--muted); }
+  .parties { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
+  .label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px; }
+  input, textarea { width:100%; font:inherit; color:var(--text); border:1px solid transparent; border-radius:8px; padding:6px 8px; background:transparent; }
+  input:hover, textarea:hover { border-color:var(--line); }
+  input:focus, textarea:focus { outline:none; border-color:var(--brand); background:#fbfffd; }
+  textarea { resize:vertical; min-height:84px; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#fff; background:var(--brand); padding:10px 8px; }
+  th:first-child { border-radius:8px 0 0 8px; } th:last-child { border-radius:0 8px 8px 0; }
+  td { padding:6px 4px; border-bottom:1px solid var(--line); vertical-align:top; }
+  td.num, th.num { text-align:right; } td.num input { text-align:right; }
+  .amount { padding:12px 8px; font-weight:600; text-align:right; white-space:nowrap; }
+  .del { background:none; border:0; color:#c0392b; cursor:pointer; font-size:18px; padding:8px; }
+  .add { margin-top:10px; }
+  .bottom { display:grid; grid-template-columns:1fr 340px; gap:32px; margin-top:24px; }
+  .totals div { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:15px; }
+  .totals input { width:70px; text-align:right; }
+  .grand { border-top:2px solid var(--text); margin-top:6px; font-size:20px !important; font-weight:800; }
+  .grand span:last-child { color:var(--brand); }
+  footer { text-align:center; color:var(--muted); font-size:13px; padding-bottom:40px; }
+  footer a { color:var(--brand); font-weight:600; text-decoration:none; }
+  @media (max-width:720px) { .paper { padding:20px; } .parties, .bottom { grid-template-columns:1fr; } h1 { text-align:left; } .meta { justify-content:start; } th.hide-sm, td.hide-sm { display:none; } }
+  @media print {
+    body { background:#fff; } .top, footer, .del, .add, .no-print { display:none !important; }
+    .paper { border:0; box-shadow:none; margin:0; padding:0; max-width:none; }
+    input, textarea { border:0 !important; padding:2px 0; } .logo-box { border:0; }
+    .logo-box.empty { display:none; } th { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">🧾 Quick<b>Invoice</b></div>
+  <div class="actions">
+    <select class="btn" id="currency" aria-label="Currency">
+      <option value="USD">$ USD</option><option value="BDT">৳ BDT</option><option value="EUR">€ EUR</option>
+      <option value="GBP">£ GBP</option><option value="INR">₹ INR</option><option value="CHF">CHF</option>
+    </select>
+    <button class="btn" id="new">New invoice</button>
+    <button class="btn primary" id="print">Download PDF</button>
+  </div>
+</div>
+
+<div class="paper" id="paper">
+  <div class="head">
+    <div>
+      <div class="logo-box empty" id="logoBox" title="Add your logo">+ Add logo</div>
+      <input type="file" id="logoFile" accept="image/*" hidden />
+    </div>
+    <div>
+      <h1>INVOICE</h1>
+      <div class="meta">
+        <span>Invoice #</span><input data-k="number" />
+        <span>Date</span><input type="date" data-k="date" />
+        <span>Due date</span><input type="date" data-k="due" />
+      </div>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div><div class="label">From</div><textarea data-k="from" placeholder="Your name / company&#10;Address&#10;Email · Phone"></textarea></div>
+    <div><div class="label">Bill to</div><textarea data-k="to" placeholder="Client name / company&#10;Address&#10;Email"></textarea></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Description</th><th class="num hide-sm" style="width:90px">Qty / Hrs</th><th class="num" style="width:120px">Rate</th><th class="num" style="width:130px">Amount</th><th class="no-print" style="width:40px"></th></tr></thead>
+    <tbody id="items"></tbody>
+  </table>
+  <button class="btn add" id="addRow">+ Add line</button>
+
+  <div class="bottom">
+    <div>
+      <div class="label">Notes / payment details</div>
+      <textarea data-k="notes" placeholder="e.g. Payment via Payoneer / bank transfer. Thank you for your business!"></textarea>
+    </div>
+    <div class="totals">
+      <div><span>Subtotal</span><span id="sub">0.00</span></div>
+      <div><span>Discount (%)</span><input type="number" min="0" step="0.5" data-k="discount" /></div>
+      <div><span>Tax / VAT (%)</span><input type="number" min="0" step="0.5" data-k="tax" /></div>
+      <div class="grand"><span>Total</span><span id="total">0.00</span></div>
+    </div>
+  </div>
+</div>
+
+<footer>Your data stays in this browser only. Made by <a href="https://github.com/Aliakbar45480">Ali Akbar</a> · <a href="https://www.upwork.com/freelancers/~014c9f290133791047">Hire me on Upwork</a></footer>
+
+<script>
+const KEY = 'quickinvoice-v1';
+const symbols = { USD:'$', BDT:'৳', EUR:'€', GBP:'£', INR:'₹', CHF:'CHF ' };
+const today = () => new Date().toISOString().slice(0,10);
+const plus = d => { const x = new Date(); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10); };
+const blank = () => ({ number:'INV-' + new Date().getFullYear() + '-001', date:today(), due:plus(14), from:'', to:'', notes:'', discount:0, tax:0, currency:'USD', logo:'', items:[{ d:'Website design & development', q:1, r:0 }] });
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)) || blank(); } catch { state = blank(); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+const fmt = n => symbols[state.currency] + (Math.round(n*100)/100).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 });
+
+function renderItems() {
+  const tb = document.getElementById('items'); tb.innerHTML = '';
+  state.items.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><input value="${(it.d||'').replace(/"/g,'&quot;')}" placeholder="Item description" data-f="d"></td>
+      <td class="num hide-sm"><input type="number" min="0" step="0.25" value="${it.q}" data-f="q"></td>
+      <td class="num"><input type="number" min="0" step="0.01" value="${it.r}" data-f="r"></td>
+      <td class="amount"></td><td class="no-print"><button class="del" title="Remove line">×</button></td>`;
+    tr.querySelectorAll('input').forEach(inp => inp.oninput = () => { it[inp.dataset.f] = inp.type==='number' ? parseFloat(inp.value)||0 : inp.value; calc(); save(); });
+    tr.querySelector('.del').onclick = () => { state.items.splice(i,1); if (!state.items.length) state.items.push({d:'',q:1,r:0}); renderItems(); save(); };
+    tb.appendChild(tr);
+  });
+  calc();
+}
+function calc() {
+  const rows = document.querySelectorAll('#items tr');
+  let sub = 0;
+  state.items.forEach((it, i) => { const a = (it.q||0)*(it.r||0); sub += a; rows[i].querySelector('.amount').textContent = fmt(a); });
+  const disc = sub * (state.discount||0)/100, tax = (sub-disc) * (state.tax||0)/100;
+  document.getElementById('sub').textContent = fmt(sub);
+  document.getElementById('total').textContent = fmt(sub - disc + tax);
+}
+function renderLogo() {
+  const b = document.getElementById('logoBox');
+  b.innerHTML = state.logo ? `<img src="${state.logo}" alt="Logo">` : '+ Add logo';
+  b.classList.toggle('empty', !state.logo);
+}
+function renderAll() {
+  document.querySelectorAll('[data-k]').forEach(el => el.value = state[el.dataset.k] ?? '');
+  document.getElementById('currency').value = state.currency;
+  renderLogo(); renderItems();
+}
+
+document.querySelectorAll('[data-k]').forEach(el => el.oninput = () => { state[el.dataset.k] = el.type==='number' ? parseFloat(el.value)||0 : el.value; calc(); save(); });
+document.getElementById('currency').onchange = e => { state.currency = e.target.value; calc(); save(); };
+document.getElementById('addRow').onclick = () => { state.items.push({d:'',q:1,r:0}); renderItems(); save(); };
+document.getElementById('logoBox').onclick = () => document.getElementById('logoFile').click();
+document.getElementById('logoFile').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { state.logo = r.result; renderLogo(); save(); }; r.readAsDataURL(f); };
+document.getElementById('print').onclick = () => { document.title = state.number || 'invoice'; window.print(); };
+document.getElementById('new').onclick = () => {
+  const keep = { from: state.from, logo: state.logo, currency: state.currency, notes: state.notes };
+  const m = /(\d+)$/.exec(state.number||''); const next = m ? state.number.replace(/\d+$/, String(+m[1]+1).padStart(m[1].length,'0')) : blank().number;
+  state = Object.assign(blank(), keep, { number: next }); renderAll(); save();
+};
+renderAll();
+</script>
+</body>
+</html>
